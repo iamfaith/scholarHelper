@@ -80,7 +80,7 @@ let customPanel = function () {
                 }
                 parent.append('<button showMore="true" name="' + i + '" pkid="' + pkid + '">more</button>')
                 if (rate !== "")
-                    parent.append('<div style="width: 100%; word-wrap: break-word">' + rate + '</div>')
+                    parent.append('<div id="pkid' + pkid + '" style="width: 100%; word-wrap: break-word">' + rate + '</div>')
             })
         })
     });
@@ -99,6 +99,30 @@ let customPanel = function () {
 
         // $('#scholarIfm').attr("src", "https://search-production.ratemyprofessors.com/solr/rmp/select/?solrformat=true&rows=20&wt=json&json.wrf=noCB&callback=noCB&q=" + $('#customInput').val() + "&defType=edismax&qf=teacherfirstname_t%5E2000+teacherlastname_t%5E2000+teacherfullname_t%5E2000+autosuggest&bf=pow(total_number_of_ratings_i%2C2.1)&sort=total_number_of_ratings_i+desc&siteName=rmp&rows=20&start=0&fl=pk_id+teacherfirstname_t+teacherlastname_t+total_number_of_ratings_i+averageratingscore_rf+schoolid_s&fq=")
         $('#scholarIfm').toggle('fast');
+        let div = document.getElementById('pkid' + pkid);
+        if (!div.hasAttribute("hasSearchGoogle"))
+            $.get("https://scholar.google.com/citations?hl=en&view_op=search_authors&mauthors=" + name + "&btnG="
+                , function (data) {
+                    let match;
+                    let tags = []
+                    while ((match = /<a class="gsc_oai_one_int"([^>]*)>([^<]*)/g.exec(data)) !== null) {
+                        for (let i = 0; i < match.length; i++) {
+                            if (/^[a-zA-Z ]+$/.test(match[i])) {
+                                tags.push(match[i])
+                            } else {
+                                data = data.replace(match[i], "")
+                            }
+                        }
+                    }
+                    match = /<a class="gsc_oai_aff"([^>]*)>([^<]*)/g.exec(data)
+                    if (!!match && match.length >= 3)
+                        tags.push(match[2])
+                    console.log(tags)
+                    if (!!div) {
+                        div.innerHTML += JSON.stringify(tags);
+                    }
+                    div.setAttribute("hasSearchGoogle", "true")
+                })
     })
 }
 
