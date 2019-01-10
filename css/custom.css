@@ -1,7 +1,22 @@
+.scholar-bubble {
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 3px;
+    background-color: rgb(255, 255, 255);
+    position: fixed;
+    width: 100%;
+    height: 300px;
+    z-index: 1201 !important;
+    border-image: initial;
+    border: 1px solid rgb(187, 187, 187);
+    border-bottom-color: rgb(168, 168, 168);
+    padding: 16px;
+    top: 0px;
+    left: 0px;
+}
+
 .chrome-plugin-demo-panel {
 	position: fixed;
 	right: 0;
-	bottom: 10px;
+    top: 10px;
 	background: #3385ff;
 	padding: 10px;
     box-shadow: 0px 0px 10px #002761;
