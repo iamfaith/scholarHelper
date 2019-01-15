@@ -128,7 +128,9 @@ let customPanel = function () {
 
 
 document.addEventListener('DOMContentLoaded', function () {
-    customPanel()
+    if (window.location.hostname.endsWith('.ca')) {
+        customPanel()
+    }
 })
 
 
