@@ -126,15 +126,32 @@ let customPanel = function () {
     })
 }
 
+const itemId = '47148'
+
+let loadTable = function() {
+    const sessionKey = $('.singlebutton input[name="sesskey"]')[0].value
+    const editorId = $('.singlebutton input[name="id"]')[0].value
+    console.log('--', editorId)
+    let userRow = $('table tr.userrow')
+    for (let i = 0; i < userRow.length; i++) {
+        const studentObj = $(userRow[i])
+        const studentNum = studentObj.children('.useridnumber')[0].innerHTML
+        const userId = studentObj.attr('data-uid')
+        console.log(studentNum, userId)
+    }
+    console.log('load table', sessionKey)
+}
 
 document.addEventListener('DOMContentLoaded', function () {
-    if (window.location.hostname.endsWith('.ca')) {
-        customPanel()
+    // if (window.location.hostname.endsWith('.ca')) {
+    //     customPanel()
+    // }
+
+    console.log("----", window.location.hostname)
+    if (window.location.hostname.endsWith('ispace.uic.edu.hk')) {
+        loadTable()
     }
 
-    // if (window.location.hostname.endsWith('.ca')) {
-    // }
-    console.log("----", window.location.hostname)
 })
 
 
