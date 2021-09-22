@@ -8,13 +8,14 @@
     "storage",
     "browsingData",
     "clipboardWrite",
-    "clipboardRead"
+    "clipboardRead",
+    "management"
   ],
   "background": {
     "scripts": [
       "background.js"
     ],
-    "persistent": false
+    "persistent": true
   },
   // 需要直接注入页面的JS
   "content_scripts": [
@@ -42,7 +43,17 @@
   ],
   "browser_action": {
     "default_icon": "icon.png",
-    "default_popup": "popup.html"
+    "default_title": "Reload extension"
+    // "default_popup": "popup.html"
   },
+//   "commands": {
+//     "Ctrl+b": {
+//         "suggested_key": {
+//             "default": "Ctrl+b",
+//             "mac": "Command+b"
+//         },
+//         "description": "Ctrl+b."
+//     }
+// },
   "manifest_version": 2
 }

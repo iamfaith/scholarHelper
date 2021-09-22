@@ -131,6 +131,10 @@ document.addEventListener('DOMContentLoaded', function () {
     if (window.location.hostname.endsWith('.ca')) {
         customPanel()
     }
+
+    // if (window.location.hostname.endsWith('.ca')) {
+    // }
+    console.log("----", window.location.hostname)
 })
 
 
