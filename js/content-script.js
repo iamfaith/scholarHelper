@@ -137,7 +137,8 @@ let loadTable = function() {
         const studentObj = $(userRow[i])
         const studentNum = studentObj.children('.useridnumber')[0].innerHTML
         const userId = studentObj.attr('data-uid')
-        console.log(studentNum, userId)
+        const oldGrade = studentObj.children('td[data-itemid=' + itemId+ ']').text()
+        console.log(studentNum, userId, oldGrade)
     }
     console.log('load table', sessionKey)
 }
