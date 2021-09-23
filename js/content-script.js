@@ -129,21 +129,33 @@ let customPanel = function () {
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 var json_objects = new Map()
-const itemId = '47148'
+const itemId = '49302'
+var post_data_info = {}
+
+function intersection(o1, o2) {
+    // Array.from( myMap.keys() )
+    return [ ...o1.keys() ].filter(k => o2.has(k))
+}
 
 let loadTable = function () {
+    post_data_info = {}
+
     const sessionKey = $('.singlebutton input[name="sesskey"]')[0].value
     const editorId = $('.singlebutton input[name="id"]')[0].value
     console.log('--', editorId)
     let userRow = $('table tr.userrow')
+    let studentInfo = new Map()
     for (let i = 0; i < userRow.length; i++) {
         const studentObj = $(userRow[i])
-        const studentNum = studentObj.children('.useridnumber')[0].innerHTML
+        const studentNo = studentObj.children('.useridnumber')[0].innerHTML
         const userId = studentObj.attr('data-uid')
         const oldGrade = studentObj.children('td[data-itemid=' + itemId + ']').text()
-        console.log(studentNum, userId, oldGrade)
+
+        studentInfo.set(studentNo, { "studentNo": studentNo, "userid": userId, "itemid": itemId,"grading": oldGrade })
+        // console.log(studentNo, userId, oldGrade)
     }
-    console.log('load table', sessionKey)
+    post_data_info = {'id': editorId, 'sesskey': sessionKey, 'studentInfo': studentInfo}
+    console.log('load table', post_data_info)
 }
 
 var ExcelToJSON = function () {
@@ -168,8 +180,13 @@ var ExcelToJSON = function () {
                         let studentObj = { "studentNo": studentNo, "studentName": obj["User full name"], "grading": obj["grading"] }
 
                         if (json_objects.has(studentNo)) {
-                            if (json_objects.get(studentNo)["grading"] !=  obj["grading"]) {
+                            let oldGrade = json_objects.get(studentNo)["grading"]
+                            if (oldGrade !=  obj["grading"]) {
                                 console.log('-----warning----', "存在" + studentNo, json_objects.get(studentNo), studentObj)
+                                if (obj["grading"] > oldGrade) {
+                                    json_objects.set(studentNo, studentObj)
+                                    console.log('-----覆盖',json_objects.get(studentNo))
+                                }
                             }
                         } else {
                             json_objects.set(studentNo, studentObj)
@@ -209,6 +226,7 @@ let createForm = function () {
         <input id="uploadFile" type=file  name="files[]">
     </form>
     <button id="clearBtn">clear</button>
+    <button id="postBtn">提交</button>
     </div>
     `
     document.body.appendChild(form);
@@ -218,6 +236,54 @@ let createForm = function () {
         json_objects = new Map()
         console.log('clear', json_objects)
     });
+
+    $('#postBtn').click(function () {
+        console.log('begin to post data')
+        
+        postKeys = intersection(post_data_info.studentInfo, json_objects)
+        console.log(postKeys)
+        let cnt = postKeys.length
+
+        for (let i = 0; i < cnt; i++) {
+            key = postKeys[i]
+            let data = new FormData()
+            data.append('id', post_data_info.id)
+            data.append('sesskey', post_data_info.sesskey)
+
+            data.append('type', 'value')
+            data.append('action', 'update')
+
+            // student 
+            const studentObj = post_data_info.studentInfo.get(key)
+            const newGrade = json_objects.get(key)["grading"]
+
+            data.append('userid', studentObj['userid'])
+            data.append('itemid', studentObj['itemid'])
+
+            if (studentObj['grading'] != '-') {
+                console.log('----设置', key, studentObj['grading'], "为", newGrade)
+            }
+            data.append('newvalue', newGrade)
+            console.log('----登记', key, newGrade)
+            // console.log(data)
+
+            $.ajax({
+                url: 'https://ispace.uic.edu.hk/grade/report/grader/ajax_callbacks.php',
+                data: data,
+                processData: false,
+                contentType: false,
+                type: 'POST',
+                async: false,
+                success: function(data){
+                    // console.log('--success')
+                },
+                error: function(e) {
+                    console.log('--error', e)
+                }
+              });
+        }
+    });
+    
 }
 
 document.addEventListener('DOMContentLoaded', function () {
