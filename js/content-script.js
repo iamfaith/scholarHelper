@@ -30,7 +30,7 @@ let customPanel = function () {
             let resp = parseRanking(data)["docs"]
             let school = resp.map(item => {
                 let id = item["id"].replace("school", "schoolid_s")
-                return {label: item['schoolname_s'], value: id}
+                return { label: item['schoolname_s'], value: id }
             })
             $('#schoolInput').autocomplete({
                 source: school
@@ -126,9 +126,12 @@ let customPanel = function () {
     })
 }
 
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+var json_objects = new Map()
 const itemId = '47148'
 
-let loadTable = function() {
+let loadTable = function () {
     const sessionKey = $('.singlebutton input[name="sesskey"]')[0].value
     const editorId = $('.singlebutton input[name="id"]')[0].value
     console.log('--', editorId)
@@ -137,10 +140,84 @@ let loadTable = function() {
         const studentObj = $(userRow[i])
         const studentNum = studentObj.children('.useridnumber')[0].innerHTML
         const userId = studentObj.attr('data-uid')
-        const oldGrade = studentObj.children('td[data-itemid=' + itemId+ ']').text()
+        const oldGrade = studentObj.children('td[data-itemid=' + itemId + ']').text()
         console.log(studentNum, userId, oldGrade)
     }
     console.log('load table', sessionKey)
+}
+
+var ExcelToJSON = function () {
+
+    this.parseExcel = function (file) {
+        var reader = new FileReader();
+
+        reader.onload = function (e) {
+            var data = e.target.result;
+            var workbook = XLSX.read(data, {
+                type: 'binary'
+            });
+            workbook.SheetNames.forEach(function (sheetName) {
+                var XL_row_object = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[sheetName]);
+                // var json_object = JSON.stringify(XL_row_object);
+                // json_object = JSON.parse(json_object)
+
+                for (index in XL_row_object) {
+                    let obj = XL_row_object[index]
+                    if (obj["grading"] != undefined) {
+                        const studentNo = obj["ID number"]
+                        let studentObj = { "studentNo": studentNo, "studentName": obj["User full name"], "grading": obj["grading"] }
+
+                        if (json_objects.has(studentNo)) {
+                            if (json_objects.get(studentNo)["grading"] !=  obj["grading"]) {
+                                console.log('-----warning----', "存在" + studentNo, json_objects.get(studentNo), studentObj)
+                            }
+                        } else {
+                            json_objects.set(studentNo, studentObj)
+                        }
+                        // json_objects.push(studentObj)
+                    }
+                }
+                console.log(json_objects);
+
+                //   jQuery( '#xlx_json' ).val( json_object );
+            })
+        };
+
+        reader.onerror = function (ex) {
+            console.log(ex);
+        };
+
+        reader.readAsBinaryString(file);
+    };
+};
+
+function handleFileSelect(evt) {
+
+    var files = evt.target.files; // FileList object
+    var xl2json = new ExcelToJSON();
+    xl2json.parseExcel(files[0]);
+}
+
+
+let createForm = function () {
+    let form = document.createElement('div');
+    form.innerHTML = `
+    <div style="z-index: 10000;
+    top: 52px;
+    position: absolute;">
+    <form enctype="multipart/form-data" >
+        <input id="uploadFile" type=file  name="files[]">
+    </form>
+    <button id="clearBtn">clear</button>
+    </div>
+    `
+    document.body.appendChild(form);
+    document.getElementById('uploadFile').addEventListener('change', handleFileSelect, false);
+    $('#clearBtn').click(function () {
+        console.log('origin', json_objects)
+        json_objects = new Map()
+        console.log('clear', json_objects)
+    });
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -151,6 +228,7 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log("----", window.location.hostname)
     if (window.location.hostname.endsWith('ispace.uic.edu.hk')) {
         loadTable()
+        createForm()
     }
 
 })
