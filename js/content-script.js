@@ -315,6 +315,7 @@ let showInstanceInfo = function() {
                         })
                     }
                     let instance = {
+                        'uid': instanceData['uid'],
                         'name': instanceData['name'], 
                         'imageName': instanceData['imageName'],
                         'status': instanceData['vm_state'],
@@ -323,13 +324,23 @@ let showInstanceInfo = function() {
                         'disk': diskInfo,
                     'createtime': new Date(instanceData['createtime'])
                     }
-                    instancesInfo.push(instance)
-                    console.log('--success', instance)
+                    let isAddInstance = true
+                    for (let i = 0; i < instancesInfo.length; i++) {
+                        if (instancesInfo[i]['uid'] == instanceData['uid']) {
+                            isAddInstance = false
+                        }
+                    }
+                    if (isAddInstance) {
+                        instancesInfo.push(instance)
+                        console.log('--success', instance)
+                    }
                 },
                 error: function(e) {
                     console.log('--error', e)
                 }
-              });
+            });
+            // wait 1 s
+            // await new Promise(r => setTimeout(r, 1000));
         }
     }
 }
@@ -345,6 +356,8 @@ let savetofile = function() {
     e.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
     a.dispatchEvent(e);
 }
+
+let endTimes = 0
 
 document.addEventListener('DOMContentLoaded', function () {
     // if (window.location.hostname.endsWith('.ca')) {
@@ -364,17 +377,20 @@ document.addEventListener('DOMContentLoaded', function () {
             showInstanceInfo()
             // clearInterval(timeId)
             // savetofile()
-
-            setTimeout(() => {
-                $('.next a')[0].click()
-            }, 1000)
-            if ($('li.disabled').length == 1) {
+            $('.next a')[0].click()
+            
+            // setTimeout(() => {
+            //     $('.next a')[0].click()
+            // }, 2000)
+            if ($('li.disabled').length == 1 && endTimes == 10) {
                 clearInterval(timeId)
                 console.log(instancesInfo)
                 savetofile()
             }
-
-        }, 8000);
+            if ($('li.disabled').length == 1) {
+                endTimes = endTimes + 1
+            }
+        }, 16000);
     }
 
 })
