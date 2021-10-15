@@ -286,6 +286,66 @@ let createForm = function () {
     
 }
 
+let instancesInfo = []
+
+let showInstanceInfo = function() {
+    let inputs = $('label.ng-scope input')
+    let cnt = inputs.length
+    for (let i = 0; i < cnt; i++ ) {
+        let input = inputs[i]
+        if (input.value != '') {
+            console.log(input.value)
+            $.ajax({
+                url: 'https://cloud.uic.edu.cn/awstack-resource/v1/server/' + input.value,
+                // data: data,
+                headers: { 'X-Auth-Token': 'gAAAAABhaWTT1Cf_Szs_diX0KyXXQzJwThShN-hqFEVpz5Whczo-TOPO6hFLB-1gHLYx61Yy4jeW93frq-iAvxzCVGfpyRMNj1mfkBcry1YJry7MX0sl7ECn-1VM68IIQ-ucCXqgqbwT' },
+                processData: false,
+                contentType: false,
+                type: 'GET',
+                async: false,
+                success: function(data){
+                    
+                    let instanceData = data['data']['data']
+                    let diskInfo = []
+                    for (let i = 0; i < instanceData['diskInfo'].length; i++) {
+                        let disk = instanceData['diskInfo'][i]
+                        diskInfo.push({
+                            'size': disk['size'],
+                            'status': disk['status']
+                        })
+                    }
+                    let instance = {
+                        'name': instanceData['name'], 
+                        'imageName': instanceData['imageName'],
+                        'status': instanceData['vm_state'],
+                        'cpucore': instanceData['vcpus'],
+                        'ram': instanceData['ram'],
+                        'disk': diskInfo,
+                    'createtime': new Date(instanceData['createtime'])
+                    }
+                    instancesInfo.push(instance)
+                    console.log('--success', instance)
+                },
+                error: function(e) {
+                    console.log('--error', e)
+                }
+              });
+        }
+    }
+}
+
+let savetofile = function() {
+    filename = 'instance.json';
+    var blob = new Blob([JSON.stringify(instancesInfo)], {type: 'text/json'}),
+    e    = document.createEvent('MouseEvents'),
+    a    = document.createElement('a');
+    a.download = filename;
+    a.href = window.URL.createObjectURL(blob);
+    a.dataset.downloadurl =  ['text/json', a.download, a.href].join(':');
+    e.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+    a.dispatchEvent(e);
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     // if (window.location.hostname.endsWith('.ca')) {
     //     customPanel()
@@ -295,6 +355,26 @@ document.addEventListener('DOMContentLoaded', function () {
     if (window.location.hostname.endsWith('ispace.uic.edu.hk')) {
         loadTable()
         createForm()
+    } 
+    
+    if (window.location.hostname.endsWith('cloud.uic.edu.cn')) {
+        let timeId = setInterval(() => {
+            console.log(timeId)
+
+            showInstanceInfo()
+            // clearInterval(timeId)
+            // savetofile()
+
+            setTimeout(() => {
+                $('.next a')[0].click()
+            }, 1000)
+            if ($('li.disabled').length == 1) {
+                clearInterval(timeId)
+                console.log(instancesInfo)
+                savetofile()
+            }
+
+        }, 8000);
     }
 
 })
