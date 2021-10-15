@@ -378,11 +378,11 @@ document.addEventListener('DOMContentLoaded', function () {
             // clearInterval(timeId)
             // savetofile()
             $('.next a')[0].click()
-            
+
             // setTimeout(() => {
             //     $('.next a')[0].click()
             // }, 2000)
-            if ($('li.disabled').length == 1 && endTimes == 10) {
+            if ($('li.disabled').length == 1 && endTimes == 2) {
                 clearInterval(timeId)
                 console.log(instancesInfo)
                 savetofile()
